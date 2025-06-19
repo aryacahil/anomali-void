@@ -230,16 +230,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (gameStarted && !gameOver) {
         const moveDirection = new THREE.Vector3(moveState.right, 0, moveState.forward);
-        const direction = new THREE.Vector3();
-        camera.getWorldDirection(direction);
-
-        const cameraWorldPos = new THREE.Vector3();
-        camera.getWorldPosition(cameraWorldPos);
-
-        playerLight.position.copy(cameraWorldPos); // Lampu ikut posisi kamera
-        lightTarget.position.copy(cameraWorldPos).add(direction); // Target tepat di depan
-
-        playerLight.target.updateMatrixWorld(); // Update target
+        const camDir = new THREE.Vector3();
+        camera.getWorldDirection(camDir);
+        lightTarget.position.copy(camera.position).add(camDir);
+        playerLight.target.updateMatrixWorld();
 
         if (moveDirection.lengthSq() > 0) {
             moveDirection.normalize();

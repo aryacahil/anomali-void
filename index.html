@@ -13,6 +13,7 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="ui" class="hidden">
+        <div class="crosshair">+</div>
         <div id="controls">
             <button id="btnUp">▲</button>
             <div>
@@ -26,20 +27,15 @@
     <div id="startScreen" class="screen">
         <h1 class="glitch" data-text="VOID HOROR">VOID HOROR</h1>
         <p>Sebuah eksperimen oleh Aryacahil</p>
+        <p style="font-size: 1rem; color: #ccc; margin-top: 40px;">Gunakan WASD untuk bergerak.<br>Klik layar saat bermain untuk mengunci kursor & melihat sekeliling.</p>
         <button id="startButton">Mulai</button>
     </div>
 
     <div id="characterSelectionScreen" class="screen hidden">
         <h2 class="glitch" data-text="PILIH HANTU">PILIH HANTU</h2>
         <div id="character-choices">
-            <button class="char-btn" data-char="pocong">
-                <img src="assets/arya.jpg" alt="Arya">
-                <span>Arya</span>
-            </button>
-            <button class="char-btn" data-char="kuntilanak">
-                <img src="assets/kuntilanak.png" alt="Kuntilanak">
-                <span>Belum Ada</span>
-            </button>
+            <button class="char-btn" data-char="pocong"><img src="assets/arya.jpg" alt="Arya"><span>Arya</span></button>
+            <button class="char-btn" data-char="kuntilanak"><img src="assets/kuntilanak.png" alt="Kuntilanak"><span>Belum Ada</span></button>
         </div>
         <button id="playButton">PLAY</button>
     </div>
@@ -56,13 +52,15 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/DigitalGlitch.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/GlitchPass.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
+    
     <script src="game.js"></script>
 </body>
 </html>

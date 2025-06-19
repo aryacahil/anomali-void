@@ -17,10 +17,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const ambientLight = new THREE.AmbientLight(0x505050, 1.0);
     scene.add(ambientLight);
 
-    const playerLight = new THREE.SpotLight(0xffffff, 3.0, 40, Math.PI / 4, 0.4, 1.5);
+    const playerLight = new THREE.SpotLight(0xffffff, 3.0, 40, Math.PI / 6, 0.4, 1.5);
+    playerLight.position.set(0, 0, 0); // Posisi relatif terhadap kamera
     camera.add(playerLight);
+
     const lightTarget = new THREE.Object3D();
-    camera.add(lightTarget);
+    scene.add(lightTarget); // HARUS di scene, bukan camera
     playerLight.target = lightTarget;
     // Set posisi target HANYA SATU KALI di sini.
     lightTarget.position.set(0, 0, -1);
@@ -43,18 +45,67 @@ window.addEventListener('DOMContentLoaded', () => {
     composer.addPass(glitchPass);
 
     function generateMaze() {
-        const mapSize = 25; const wallSize = 4;
-        const map = Array(mapSize).fill(0).map(() => Array(mapSize).fill(1));
-        function carve(cx,cy){const d=[[0,1],[0,-1],[1,0],[-1,0]];d.sort(()=>Math.random()-.5);map[cy][cx]=0;for(const[dx,dy]of d){const nX=cx+dx*2,nY=cy+dy*2;if(nY>=0&&nY<mapSize&&nX>=0&&nX<mapSize&&map[nY][nX]===1){map[cy+dy][cx+dx]=0;carve(nX,nY)}}}carve(1,1);
-        const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 });
-        const floor = new THREE.Mesh(new THREE.PlaneGeometry(mapSize * wallSize, mapSize * wallSize), new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.9 }));
-        floor.rotation.x = -Math.PI / 2;
-        scene.add(floor);
-        for (let y = 0; y < mapSize; y++) { for (let x = 0; x < mapSize; x++) { if (map[y][x] === 1) { const wall = new THREE.Mesh(new THREE.BoxGeometry(wallSize, 6, wallSize), wallMaterial); const worldX = (x - (mapSize - 1) / 2) * wallSize; const worldZ = (y - (mapSize - 1) / 2) * wallSize; wall.position.set(worldX, 3, worldZ); scene.add(wall); walls.push(wall); } } }
-        const startX = (1 - (mapSize - 1) / 2) * wallSize;
-        const startZ = (1 - (mapSize - 1) / 2) * wallSize;
-        camera.position.set(startX, 1.7, startZ);
+    const mapSize = 25;
+    const wallSize = 4;
+    const map = Array(mapSize).fill(0).map(() => Array(mapSize).fill(1));
+
+    function carve(cx, cy) {
+        const d = [[0,1],[0,-1],[1,0],[-1,0]];
+        d.sort(() => Math.random() - 0.5);
+        map[cy][cx] = 0;
+        for (const [dx, dy] of d) {
+            const nX = cx + dx * 2;
+            const nY = cy + dy * 2;
+            if (nY >= 0 && nY < mapSize && nX >= 0 && nX < mapSize && map[nY][nX] === 1) {
+                map[cy + dy][cx + dx] = 0;
+                carve(nX, nY);
+            }
+        }
     }
+    carve(1, 1);
+
+    // Load textures
+    const wallTexture = textureLoader.load('assets/wall.jpg');
+    wallTexture.wrapS = wallTexture.wrapT = THREE.RepeatWrapping;
+    wallTexture.repeat.set(1, 1);
+
+    const floorTexture = textureLoader.load('assets/floor.jpg');
+    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set(mapSize, mapSize);
+
+    // Apply textures to materials
+    const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture });
+    const floorMaterial = new THREE.MeshStandardMaterial({ map: floorTexture });
+
+    // Floor
+    const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(mapSize * wallSize, mapSize * wallSize),
+        floorMaterial
+    );
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
+
+    // Walls
+    for (let y = 0; y < mapSize; y++) {
+        for (let x = 0; x < mapSize; x++) {
+            if (map[y][x] === 1) {
+                const wall = new THREE.Mesh(
+                    new THREE.BoxGeometry(wallSize, 6, wallSize),
+                    wallMaterial
+                );
+                const worldX = (x - (mapSize - 1) / 2) * wallSize;
+                const worldZ = (y - (mapSize - 1) / 2) * wallSize;
+                wall.position.set(worldX, 3, worldZ);
+                scene.add(wall);
+                walls.push(wall);
+            }
+        }
+    }
+
+    const startX = (1 - (mapSize - 1) / 2) * wallSize;
+    const startZ = (1 - (mapSize - 1) / 2) * wallSize;
+    camera.position.set(startX, 0, startZ); // Jika pakai player, bukan camera langsung
+}
 
     const ghost = new THREE.Mesh(new THREE.PlaneGeometry(2, 3), new THREE.MeshBasicMaterial({ transparent: true, alphaTest: 0.5 }));
     scene.add(ghost);
@@ -174,39 +225,59 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // ===== GAME LOOP & JUMPSCARE (DENGAN PERBAIKAN TABRAKAN) =====
     function animate() {
-        requestAnimationFrame(animate);
-        const delta = clock.getDelta();
+    requestAnimationFrame(animate);
+    const delta = clock.getDelta();
 
-        if (gameStarted && !gameOver) {
-            // PERBAIKAN: Logika deteksi tabrakan yang lebih baik
-            const moveDirection = new THREE.Vector3(moveState.right, 0, moveState.forward);
-            // Hanya bergerak jika ada input
-            if (moveDirection.lengthSq() > 0) { // lengthSq lebih efisien dari length()
-                moveDirection.normalize();
-                const worldDirection = moveDirection.clone().applyQuaternion(camera.quaternion);
-                const speed = moveSpeed * delta;
+    if (gameStarted && !gameOver) {
+        const moveDirection = new THREE.Vector3(moveState.right, 0, moveState.forward);
+        const direction = new THREE.Vector3();
+        camera.getWorldDirection(direction);
 
-                const raycaster = new THREE.Raycaster(camera.position, worldDirection);
-                const intersects = raycaster.intersectObjects(walls);
+        const cameraWorldPos = new THREE.Vector3();
+        camera.getWorldPosition(cameraWorldPos);
 
-                if (intersects.length === 0 || intersects[0].distance > playerHitboxSize) {
-                    camera.position.add(worldDirection.multiplyScalar(speed));
-                }
-                
-                if (canPlayFootstep) {
-                    /* footstepSound.currentTime = 0; footstepSound.play().catch(e => {}); canPlayFootstep = false; setTimeout(() => { canPlayFootstep = true; }, 450); */
-                }
+        playerLight.position.copy(cameraWorldPos); // Lampu ikut posisi kamera
+        lightTarget.position.copy(cameraWorldPos).add(direction); // Target tepat di depan
+
+        playerLight.target.updateMatrixWorld(); // Update target
+
+        if (moveDirection.lengthSq() > 0) {
+            moveDirection.normalize();
+            const worldDirection = moveDirection.clone().applyQuaternion(camera.quaternion);
+            worldDirection.y = 0; // ⬅️ Hindari pergerakan vertikal
+            worldDirection.normalize();
+
+            const speed = moveSpeed * delta;
+
+            const raycaster = new THREE.Raycaster(camera.position, worldDirection);
+            const intersects = raycaster.intersectObjects(walls);
+
+            if (intersects.length === 0 || intersects[0].distance > playerHitboxSize) {
+                camera.position.add(worldDirection.multiplyScalar(speed));
             }
 
-            updateGhostAI();
-            if (ghost.position.distanceTo(camera.position) < 1.2) {
-                triggerJumpscare();
+            // Jaga ketinggian kamera tetap
+            camera.position.y = 1.7;
+
+            if (canPlayFootstep) {
+                // footstepSound.currentTime = 0;
+                // footstepSound.play().catch(() => {});
+                // canPlayFootstep = false;
+                // setTimeout(() => { canPlayFootstep = true; }, 450);
             }
         }
-        if (gameStarted) {
-            composer.render(delta);
+
+        updateGhostAI();
+
+        if (ghost.position.distanceTo(camera.position) < 1.2) {
+            triggerJumpscare();
         }
     }
+
+    if (gameStarted) {
+        composer.render(delta);
+    }
+}
 
     function triggerJumpscare() {
         gameOver = true; document.pointerLockElement && document.exitPointerLock();

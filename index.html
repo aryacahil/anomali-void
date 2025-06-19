@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Void Horror</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui" class="hidden">
+        <div id="controls">
+            <button id="btnUp">▲</button>
+            <div>
+                <button id="btnLeft">◄</button>
+                <button id="btnDown">▼</button>
+                <button id="btnRight">►</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="startScreen" class="screen">
+        <h1 class="glitch" data-text="VOID HOROR">VOID HOROR</h1>
+        <p>Sebuah eksperimen oleh Aryacahil</p>
+        <button id="startButton">Mulai</button>
+    </div>
+
+    <div id="characterSelectionScreen" class="screen hidden">
+        <h2 class="glitch" data-text="PILIH HANTU">PILIH HANTU</h2>
+        <div id="character-choices">
+            <button class="char-btn" data-char="pocong">
+                <img src="assets/arya.jpg" alt="Arya">
+                <span>Arya</span>
+            </button>
+            <button class="char-btn" data-char="kuntilanak">
+                <img src="assets/kuntilanak.png" alt="Kuntilanak">
+                <span>Belum Ada</span>
+            </button>
+        </div>
+        <button id="playButton">PLAY</button>
+    </div>
+
+    <div id="jumpscare" class="screen hidden">
+        <div class="jumpscare-overlay red-flash"></div>
+        <div class="jumpscare-overlay static-noise"></div>
+        <img id="jumpscareImage" src="" alt="Jumpscare">
+    </div>
+
+    <div id="gameOverScreen" class="screen hidden">
+        <h1 class="glitch" data-text="YOU DIED">YOU DIED</h1>
+        <button id="restartButton">Main Lagi</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/DigitalGlitch.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/GlitchPass.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
